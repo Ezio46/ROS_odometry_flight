@@ -12,7 +12,7 @@ current_state = State()
 goal_pose = PoseStamped()
 current_pose = PoseStamped()
 trajectory_points = []
-# path_points = []
+path_points = []
 
 def state_cb(msg):
     global current_state
@@ -36,18 +36,19 @@ def publish_trajectory():
         pointcloud.points.append(p)
     trajectory_pub.publish(pointcloud)
 
-# def publish_path():
-#     global path_points
-#     path = Path()
-#     path.header.stamp = rospy.Time.now()
-#     path.header.frame_id = "map"
-#     for point in path_points:
-#         p = Poses()
-#         p.x = point.x
-#         p.y = point.y
-#         p.z = point.z
-#         path.points.append(p)
-#     path_pub.publish(path)
+def publish_path():
+    global path_points
+    path = Path()
+    path.header.stamp = rospy.Time.now()
+    path.header.frame_id = "map"
+    for point in path_points:
+        pose = PoseStamped()
+        pose.pose.position.x = point.x
+        pose.pose.position.y = point.y
+        pose.pose.position.z = point.z
+        path.poses.append(pose)
+    path_pub.publish(path)
+
 
 
 if __name__ == "__main__":
@@ -67,7 +68,7 @@ if __name__ == "__main__":
 
     trajectory_pub = rospy.Publisher("drone_trajectory", PointCloud, queue_size=10)
 
-    # path_pub = rospy.Publisher("drone_path", Path, queue_size=10)
+    path_pub = rospy.Publisher("drone_path", Path, queue_size=10)
 
 
     # Setpoint publishing MUST be faster than 2Hz
@@ -121,6 +122,10 @@ if __name__ == "__main__":
         local_pos_pub.publish(goal_pose)
         trajectory_points.append(current_pose.pose.position)
         path_points.append(current_pose.pose.position)
+        publish_path()
+
 
     publish_trajectory()
+    
+
 
